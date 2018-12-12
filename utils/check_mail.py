@@ -1,10 +1,16 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
 import poplib
+import time
 from email.parser import Parser
 from email.header import decode_header
 from email.utils import parseaddr
 
+
 # indent用于缩进显示:
 def print_info(msg, indent=0):
+    file_for_write = '/home/hetao/licking_dog/LickingDog/mail_dir/chat_%s.txt'% (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+    f = open(file_for_write, "wb")
     if indent == 0:
         # 邮件的From, To, Subject存在于根对象上:
 
@@ -24,13 +30,16 @@ def print_info(msg, indent=0):
                     value = u'%s <%s>' % (name, addr)
             title_info += '%s%s: %s\n' % ('  ' * indent, header, value)
         print(title_info)
+        f.write(title_info.encode('utf-8'))
     if (msg.is_multipart()):
         # 如果邮件对象是一个MIMEMultipart,
         # get_payload()返回list，包含所有的子对象:
         parts = msg.get_payload()
         for n, part in enumerate(parts):
-            print('%spart %s' % ('  ' * indent, n))
-            print('%s--------------------' % ('  ' * indent))
+            index = u'%spart %s' % (u'  ' * indent, n)
+            print(index)
+            indent_str = u'%s--------------------' % (u'  ' * indent)
+            print(indent_str)
             # 递归打印每一个子对象:
             print_info(part, indent + 1)
     else:
@@ -44,10 +53,13 @@ def print_info(msg, indent=0):
             charset = guess_charset(msg)
             if charset:
                 content = content.decode(charset)
-            print('%sText: %s' % ('  ' * indent, content + '...'))
+            content_str = u'%sText: %s' % (u'  ' * indent, content + u'...')
+            print(content_str)
+            f.write(content_str.encode('utf-8'))
         else:
-            # 不是文本,作为附件处理:
-            print('%sAttachment: %s' % ('  ' * indent, content_type))
+            # 不是文本,作为附件处理
+            content_type_str = u'%sAttachment: %s' % (u'  ' * indent, content_type)
+            f.write(content_type_str.encode('utf-8'))
 
 def decode_str(s):
     value, charset = decode_header(s)[0]
@@ -67,10 +79,11 @@ def guess_charset(msg):
     return charset
 
 if __name__  == "__main__":
+
     # 输入邮件地址, 口令和POP3服务器地址:
-    email = 'satellite@pku.edu.cn'
+    email = 'satellite@163.com'
     password = 'qatest'
-    pop3_server = 'pop3.pku.edu.cn'
+    pop3_server = 'pop.163.com'
 
     # 连接到POP3服务器:
     server = poplib.POP3(host=pop3_server)
