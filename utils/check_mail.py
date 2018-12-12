@@ -10,7 +10,6 @@ from email.utils import parseaddr
 # indent用于缩进显示:
 def print_info(msg, indent=0):
     file_for_write = '/home/hetao/licking_dog/LickingDog/mail_dir/chat_%s.txt'% (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-    f = open(file_for_write, "wb")
     if indent == 0:
         # 邮件的From, To, Subject存在于根对象上:
 
@@ -22,7 +21,8 @@ def print_info(msg, indent=0):
                     # 需要解码Subject字符串:
                     value = decode_str(value)
                     if "聊天记录" not in value:
-                        return
+                        print("not a chat mail \n")
+                        return False
                 else:
                     # 需要解码Email地址:
                     hdr, addr = parseaddr(value)
@@ -30,6 +30,7 @@ def print_info(msg, indent=0):
                     value = u'%s <%s>' % (name, addr)
             title_info += '%s%s: %s\n' % ('  ' * indent, header, value)
         print(title_info)
+        f = open(file_for_write, "wb")
         f.write(title_info.encode('utf-8'))
     if (msg.is_multipart()):
         # 如果邮件对象是一个MIMEMultipart,
@@ -60,6 +61,7 @@ def print_info(msg, indent=0):
             # 不是文本,作为附件处理
             content_type_str = u'%sAttachment: %s' % (u'  ' * indent, content_type)
             f.write(content_type_str.encode('utf-8'))
+    return True
 
 def decode_str(s):
     value, charset = decode_header(s)[0]
@@ -108,9 +110,9 @@ if __name__  == "__main__":
     msg_content = b'\r\n'.join(lines).decode('utf-8')
     # 稍后解析出邮件:
     msg = Parser().parsestr(msg_content)
-    print_info(msg)
+    if print_info(msg):
+        server.dele(index)
     # 可以根据邮件索引号直接从服务器删除邮件:
-    server.dele(index)
     # 关闭连接:
     server.quit()
 
