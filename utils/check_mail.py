@@ -21,16 +21,16 @@ def print_info(msg, indent=0):
                     # 需要解码Subject字符串:
                     value = decode_str(value)
                     if "聊天记录" not in value:
-                        print("not a chat mail \n")
-                        return False
+                        print("%s not a chat mail \n" % value)
+                        return
                 else:
                     # 需要解码Email地址:
                     hdr, addr = parseaddr(value)
                     name = decode_str(hdr)
                     value = u'%s <%s>' % (name, addr)
             title_info += '%s%s: %s\n' % ('  ' * indent, header, value)
-        print(title_info)
         f = open(file_for_write, "wb")
+        print(title_info)
         f.write(title_info.encode('utf-8'))
     if (msg.is_multipart()):
         # 如果邮件对象是一个MIMEMultipart,
@@ -46,6 +46,7 @@ def print_info(msg, indent=0):
     else:
         # 邮件对象不是一个MIMEMultipart,
         # 就根据content_type判断:
+        f = open(file_for_write, "wb")
         content_type = msg.get_content_type()
         if content_type=='text/plain' or content_type=='text/html':
             # 纯文本或HTML内容:
@@ -61,7 +62,6 @@ def print_info(msg, indent=0):
             # 不是文本,作为附件处理
             content_type_str = u'%sAttachment: %s' % (u'  ' * indent, content_type)
             f.write(content_type_str.encode('utf-8'))
-    return True
 
 def decode_str(s):
     value, charset = decode_header(s)[0]
@@ -83,8 +83,8 @@ def guess_charset(msg):
 if __name__  == "__main__":
 
     # 输入邮件地址, 口令和POP3服务器地址:
-    email = 'satellite@163.com'
-    password = 'qatest'
+    email = '18618496905@163.com'
+    password = 'id19960106id'
     pop3_server = 'pop.163.com'
 
     # 连接到POP3服务器:
@@ -104,14 +104,17 @@ if __name__  == "__main__":
     # print(mails)
     # 获取最新一封邮件, 注意索引号从1开始:
     index = len(mails)
-    resp, lines, octets = server.retr(index)
-    # lines存储了邮件的原始文本的每一行,
-    # 可以获得整个邮件的原始文本:
-    msg_content = b'\r\n'.join(lines).decode('utf-8')
-    # 稍后解析出邮件:
-    msg = Parser().parsestr(msg_content)
-    if print_info(msg):
-        server.dele(index)
+    if index >= 1:
+        for i in range(index):
+            resp, lines, octets = server.retr(i+1)
+            # lines存储了邮件的原始文本的每一行,
+            # 可以获得整个邮件的原始文本:
+            msg_content = b'\r\n'.join(lines).decode('utf-8')
+            # 稍后解析出邮件:
+            msg = Parser().parsestr(msg_content)
+            print_info(msg)
+            server.dele(i+1)
+            time.sleep(1)
     # 可以根据邮件索引号直接从服务器删除邮件:
     # 关闭连接:
     server.quit()
